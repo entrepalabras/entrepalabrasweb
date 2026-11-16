@@ -3,14 +3,21 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>entre palabras · Leer</title>
+  <title>Leer · entre palabras</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body class="reader">
   <header class="bar">
     <a href="index.html">← Volver</a>
     <span class="counter" id="counter"></span>
-    <button id="fs" type="button">Pantalla completa</button>
+    <div class="tools">
+      <div class="zoom">
+        <button id="zout" type="button" aria-label="Alejar" title="Alejar (−)">−</button>
+        <span class="zoom-label" id="zlabel">100%</span>
+        <button id="zin" type="button" aria-label="Acercar" title="Acercar (+)">+</button>
+      </div>
+      <button id="fs" type="button">Pantalla completa</button>
+    </div>
   </header>
 
   <main class="stage" id="stage">
@@ -19,6 +26,7 @@
       <div class="track"><div class="fill" id="fill"></div></div>
     </div>
     <button class="nav prev" id="prev" type="button" aria-label="Página anterior">‹</button>
+    <div class="scroller" id="scroller"></div>
     <button class="nav next" id="next" type="button" aria-label="Página siguiente">›</button>
   </main>
 

@@ -7,6 +7,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = "./vendor/pdf.worker.min.mjs";
 
 const $ = (id) => document.getElementById(id);
 const stage = $("stage");
+const scroller = $("scroller");
 const counter = $("counter");
 const loading = $("loading");
 
@@ -15,6 +16,45 @@ let aspect = 0.7;    // ancho / alto de una página
 let flip = null;     // instancia de PageFlip
 let bookEl = null;   // contenedor del libro
 let bookSizeNow = { width: 0, height: 0 };
+
+/* ---------- Zoom ---------- */
+
+const ZOOMS = [0.75, 1, 1.25, 1.5, 2, 2.5];
+let zoomIdx = 1;
+const zoom = () => ZOOMS[zoomIdx];
+
+function updateZoomUI() {
+  $("zlabel").textContent = Math.round(zoom() * 100) + "%";
+  $("zin").disabled = zoomIdx === ZOOMS.length - 1;
+  $("zout").disabled = zoomIdx === 0;
+}
+
+function setZoom(i) {
+  const next = Math.max(0, Math.min(ZOOMS.length - 1, i));
+  if (next === zoomIdx) return;
+  zoomIdx = next;
+  updateZoomUI();
+  if (flip) mount(flip.getCurrentPageIndex());
+}
+
+$("zin").onclick = () => setZoom(zoomIdx + 1);
+$("zout").onclick = () => setZoom(zoomIdx - 1);
+updateZoomUI();
+
+// Ctrl/Cmd + rueda (o pellizco en el trackpad) también acerca y aleja.
+let wheelLock = false;
+stage.addEventListener(
+  "wheel",
+  (e) => {
+    if (!(e.ctrlKey || e.metaKey)) return;
+    e.preventDefault();
+    if (wheelLock || Math.abs(e.deltaY) < 1) return;
+    wheelLock = true;
+    setTimeout(() => { wheelLock = false; }, 250);
+    setZoom(zoomIdx + (e.deltaY < 0 ? 1 : -1));
+  },
+  { passive: false }
+);
 
 /* ---------- Pantalla completa (se activa de inmediato) ---------- */
 
@@ -47,13 +87,13 @@ function showError(msg) {
   loading.innerHTML = `<div class="error">${msg}</div>`;
 }
 
-// Resolución de las imágenes: la que hace falta para que la página se vea nítida
-// incluso en pantalla completa y en pantallas de alta densidad (retina).
+// Resolución de las imágenes: suficiente para que la página se vea nítida en
+// pantallas de alta densidad, en pantalla completa y con algo de zoom.
 function renderWidth() {
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
   const tallest = Math.max(screen.height || 0, window.innerHeight) - 110;
-  const w = tallest * aspect * dpr;
-  return Math.round(Math.min(1800, Math.max(1000, w)));
+  const w = tallest * aspect * dpr * 1.6;
+  return Math.round(Math.min(2000, Math.max(1000, w)));
 }
 
 async function renderPages(pdf) {
@@ -82,7 +122,7 @@ function isPortrait() {
   return stage.clientWidth < 760;
 }
 
-function computeBookSize() {
+function fitSize() {
   const availW = stage.clientWidth - 32;
   const availH = stage.clientHeight - 32;
   const pages = isPortrait() ? 1 : 2;
@@ -92,7 +132,12 @@ function computeBookSize() {
     w = availW / pages;
     h = w / aspect;
   }
-  return { width: Math.floor(w), height: Math.floor(h) };
+  return { width: w, height: h };
+}
+
+function targetSize() {
+  const f = fitSize();
+  return { width: Math.floor(f.width * zoom()), height: Math.floor(f.height * zoom()) };
 }
 
 function mount(startIndex = 0) {
@@ -102,9 +147,9 @@ function mount(startIndex = 0) {
 
   bookEl = document.createElement("div");
   bookEl.id = "book";
-  stage.insertBefore(bookEl, $("next"));
+  scroller.appendChild(bookEl);
 
-  bookSizeNow = computeBookSize();
+  bookSizeNow = targetSize();
   flip = new St.PageFlip(bookEl, {
     width: bookSizeNow.width,
     height: bookSizeNow.height,
@@ -112,15 +157,15 @@ function mount(startIndex = 0) {
     showCover: true,
     usePortrait: true,
     maxShadowOpacity: 0.4,
-    mobileScrollSupport: false,
+    mobileScrollSupport: zoom() > 1,
     flippingTime: 700,
   });
 
   // Modo HTML: las páginas son <img> normales, así el navegador las dibuja
   // a la resolución real de la pantalla y no se ven pixeladas.
-  const pages = urls.map((u) => {
+  const pages = urls.map((u, i) => {
     const div = document.createElement("div");
-    div.className = "page";
+    div.className = "page " + (i % 2 === 0 ? "page-right" : "page-left");
     const img = new Image();
     img.src = u;
     img.alt = "";
@@ -129,6 +174,11 @@ function mount(startIndex = 0) {
     return div;
   });
   flip.loadFromHTML(pages);
+
+  // Con zoom el libro puede ser más ancho que la pantalla: se fija su ancho
+  // para que la librería no lo reduzca a una sola página.
+  if (!isPortrait()) bookEl.style.width = bookSizeNow.width * 2 + "px";
+
   if (startIndex > 0) flip.turnToPage(startIndex);
 
   const total = urls.length;
@@ -141,12 +191,14 @@ function mount(startIndex = 0) {
   const place = () => {
     if (local !== flip) return;
     const i = flip.getCurrentPageIndex();
+    const portrait = isPortrait();
     let pos = "mid";
-    if (!busy && !isPortrait()) {
+    if (!busy && !portrait) {
       if (i === 0) pos = "first";
       else if (i >= total - 1 && total % 2 === 0) pos = "last";
     }
     bookEl.dataset.pos = pos;
+    bookEl.dataset.orient = portrait ? "portrait" : "landscape";
   };
 
   const updateCounter = () => {
@@ -181,6 +233,12 @@ function mount(startIndex = 0) {
   updateCounter();
   place();
   requestAnimationFrame(() => requestAnimationFrame(() => { bookEl.style.transition = ""; }));
+
+  // Con zoom, empieza centrado.
+  requestAnimationFrame(() => {
+    scroller.scrollLeft = (scroller.scrollWidth - scroller.clientWidth) / 2;
+    scroller.scrollTop = (scroller.scrollHeight - scroller.clientHeight) / 2;
+  });
 }
 
 // Si cambia el tamaño de la ventana (incluida la pantalla completa) se vuelve a
@@ -190,7 +248,7 @@ function onResize() {
   clearTimeout(resizeTimer);
   resizeTimer = setTimeout(() => {
     if (!flip) return;
-    const next = computeBookSize();
+    const next = targetSize();
     const changed =
       Math.abs(next.width - bookSizeNow.width) > 3 ||
       Math.abs(next.height - bookSizeNow.height) > 3;
@@ -204,7 +262,10 @@ document.addEventListener("webkitfullscreenchange", onResize);
 document.addEventListener("keydown", (e) => {
   if (!flip) return;
   if (e.key === "ArrowRight") flip.flipNext();
-  if (e.key === "ArrowLeft") flip.flipPrev();
+  else if (e.key === "ArrowLeft") flip.flipPrev();
+  else if (e.key === "+" || e.key === "=") setZoom(zoomIdx + 1);
+  else if (e.key === "-" || e.key === "_") setZoom(zoomIdx - 1);
+  else if (e.key === "0") setZoom(1);
 });
 $("prev").onclick = () => flip && flip.flipPrev();
 $("next").onclick = () => flip && flip.flipNext();
