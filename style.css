@@ -197,6 +197,9 @@ html, body {
 }
 
 /* Portada / contraportada centradas */
-#book { transition: transform 0.5s ease, clip-path 0.5s ease; }
-#book[data-pos="first"] { transform: translateX(-25%); clip-path: inset(0 0 0 50%); }
-#book[data-pos="last"]  { transform: translateX(25%);  clip-path: inset(0 50% 0 0); }
+#book { transition: transform 0.5s ease; }
+#book[data-pos="first"] { transform: translateX(-25%); }
+#book[data-pos="last"]  { transform: translateX(25%); }
+
+[hidden] { display: none !important; }
+.page { background: #fff; }
