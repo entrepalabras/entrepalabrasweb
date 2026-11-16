@@ -311,35 +311,45 @@ html, body {
 }
 
 .tools {
+  position: absolute;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 6;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.4rem;
 }
 
-.tools .zoom {
-  display: flex;
-  align-items: center;
-  gap: 0.2rem;
-}
-
-.tools .zoom button {
-  width: 2rem;
-  height: 2rem;
+.tools button {
+  width: 2.6rem;
+  height: 2.6rem;
   padding: 0;
-  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: inherit;
+  font-size: 1.4rem;
   line-height: 1;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.95);
   border: 1px solid #bbb;
   border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   text-decoration: none;
 }
 
-.tools .zoom button:hover:not(:disabled) { background: #000; color: #fff; border-color: #000; }
-.tools .zoom button:disabled { opacity: 0.35; cursor: default; }
+.tools button:hover:not(:disabled) { background: #000; color: #fff; border-color: #000; }
+.tools button:disabled { opacity: 0.35; cursor: default; }
+.tools svg { width: 1.2rem; height: 1.2rem; }
+.tools .ic-exit { display: none; }
+.tools .is-fs .ic-exit { display: block; }
+.tools .is-fs .ic-enter { display: none; }
 
 .tools .zoom-label {
-  min-width: 3.2rem;
+  font-size: 0.8rem;
   text-align: center;
-  font-size: 0.9rem;
 }
 
 .stage {
@@ -355,6 +365,11 @@ html, body {
   overflow: auto;
   padding: 16px;
 }
+
+.scroller { scrollbar-width: none; }
+.scroller::-webkit-scrollbar { display: none; }
+.scroller.zoomed { cursor: grab; }
+.scroller.panning { cursor: grabbing; user-select: none; }
 
 #book {
   margin: auto;
@@ -457,6 +472,7 @@ html, body {
   .nav { display: none; }
   .bar { padding: 0.5rem 0.8rem; gap: 0.5rem; }
   .bar a, .bar button, .bar .counter { font-size: 0.85rem; }
-  .tools { gap: 0.3rem; }
+  .tools { right: 0.6rem; bottom: 0.6rem; }
+  .tools button { width: 2.4rem; height: 2.4rem; }
   .tools .zoom-label { display: none; }
 }

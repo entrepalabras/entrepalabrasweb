@@ -1,9 +1,9 @@
-import * as pdfjsLib from "./vendor/pdf.min.mjs?v=3";
+import * as pdfjsLib from "./vendor/pdf.min.mjs?v=4";
 
 // Cambia esto si tu PDF tiene otro nombre.
 const PDF_URL = "assets/revista.pdf";
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = "./vendor/pdf.worker.min.mjs?v=3";
+pdfjsLib.GlobalWorkerOptions.workerSrc = "./vendor/pdf.worker.min.mjs?v=4";
 
 const $ = (id) => document.getElementById(id);
 const stage = $("stage");
@@ -34,6 +34,7 @@ function setZoom(i) {
   if (next === zoomIdx) return;
   zoomIdx = next;
   updateZoomUI();
+  scroller.classList.toggle("zoomed", zoom() > 1);
   if (flip) mount(flip.getCurrentPageIndex());
 }
 
@@ -56,6 +57,27 @@ stage.addEventListener(
   { passive: false }
 );
 
+/* ---------- Arrastrar para moverse cuando hay zoom ---------- */
+
+// Con zoom > 100% arrastrar mueve la vista (en vez de pasar la página).
+// Las páginas se pasan con las flechas, el teclado o los botones laterales.
+let pan = null;
+const stopIfZoomed = (e) => { if (zoom() > 1) e.stopPropagation(); };
+scroller.addEventListener("touchstart", stopIfZoomed, { capture: true, passive: true });
+scroller.addEventListener("mousedown", (e) => {
+  if (zoom() <= 1 || e.button !== 0) return;
+  e.stopPropagation();
+  e.preventDefault();
+  pan = { x: e.clientX, y: e.clientY, l: scroller.scrollLeft, t: scroller.scrollTop };
+  scroller.classList.add("panning");
+}, true);
+window.addEventListener("mousemove", (e) => {
+  if (!pan) return;
+  scroller.scrollLeft = pan.l - (e.clientX - pan.x);
+  scroller.scrollTop = pan.t - (e.clientY - pan.y);
+});
+window.addEventListener("mouseup", () => { pan = null; scroller.classList.remove("panning"); });
+
 /* ---------- Pantalla completa (se activa de inmediato) ---------- */
 
 const root = document.documentElement;
@@ -76,7 +98,10 @@ if (!requestFs) {
 
 function updateFsLabel() {
   const active = document.fullscreenElement || document.webkitFullscreenElement;
-  fsButton.textContent = active ? "Salir de pantalla completa" : "Pantalla completa";
+  const label = active ? "Salir de pantalla completa" : "Pantalla completa";
+  fsButton.title = label;
+  fsButton.setAttribute("aria-label", label);
+  fsButton.classList.toggle("is-fs", !!active);
 }
 document.addEventListener("fullscreenchange", updateFsLabel);
 document.addEventListener("webkitfullscreenchange", updateFsLabel);

@@ -4,20 +4,12 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Leer · entre palabras</title>
-  <link rel="stylesheet" href="style.css?v=3">
+  <link rel="stylesheet" href="style.css?v=4">
 </head>
 <body class="reader">
   <header class="bar">
     <a href="index.html">← Volver</a>
     <span class="counter" id="counter"></span>
-    <div class="tools">
-      <div class="zoom">
-        <button id="zout" type="button" aria-label="Alejar" title="Alejar (−)">−</button>
-        <span class="zoom-label" id="zlabel">100%</span>
-        <button id="zin" type="button" aria-label="Acercar" title="Acercar (+)">+</button>
-      </div>
-      <button id="fs" type="button">Pantalla completa</button>
-    </div>
   </header>
 
   <main class="stage" id="stage">
@@ -28,9 +20,18 @@
     <button class="nav prev" id="prev" type="button" aria-label="Página anterior">‹</button>
     <div class="scroller" id="scroller"></div>
     <button class="nav next" id="next" type="button" aria-label="Página siguiente">›</button>
+    <div class="tools">
+      <button id="zin" type="button" aria-label="Acercar" title="Acercar (+)">+</button>
+      <span class="zoom-label" id="zlabel">100%</span>
+      <button id="zout" type="button" aria-label="Alejar" title="Alejar (−)">−</button>
+      <button id="fs" type="button" aria-label="Pantalla completa" title="Pantalla completa">
+        <svg class="ic-enter" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+        <svg class="ic-exit" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>
+      </button>
+    </div>
   </main>
 
-  <script src="vendor/page-flip.browser.js?v=3"></script>
-  <script type="module" src="leer.js?v=3"></script>
+  <script src="vendor/page-flip.browser.js?v=4"></script>
+  <script type="module" src="leer.js?v=4"></script>
 </body>
 </html>
