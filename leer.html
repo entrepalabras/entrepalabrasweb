@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>entre palabras · Leer</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="reader">
+  <header class="bar">
+    <a href="index.html">← Volver</a>
+    <span class="counter" id="counter"></span>
+    <button id="fs" type="button">Pantalla completa</button>
+  </header>
+
+  <main class="stage" id="stage">
+    <div class="loading" id="loading">
+      <span id="loading-text">Cargando…</span>
+      <div class="track"><div class="fill" id="fill"></div></div>
+    </div>
+    <button class="nav prev" id="prev" type="button" aria-label="Página anterior">‹</button>
+    <div id="book"></div>
+    <button class="nav next" id="next" type="button" aria-label="Página siguiente">›</button>
+  </main>
+
+  <script src="vendor/page-flip.browser.js"></script>
+  <script type="module" src="leer.js"></script>
+</body>
+</html>
