@@ -1,9 +1,9 @@
-import * as pdfjsLib from "./vendor/pdf.min.mjs";
+import * as pdfjsLib from "./vendor/pdf.min.mjs?v=3";
 
 // Cambia esto si tu PDF tiene otro nombre.
 const PDF_URL = "assets/revista.pdf";
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = "./vendor/pdf.worker.min.mjs";
+pdfjsLib.GlobalWorkerOptions.workerSrc = "./vendor/pdf.worker.min.mjs?v=3";
 
 const $ = (id) => document.getElementById(id);
 const stage = $("stage");
@@ -277,7 +277,8 @@ async function init() {
   } catch (e) {
     showError(
       "No se pudo abrir el PDF. Revisa que <code>assets/revista.pdf</code> exista " +
-      "y que abras el sitio desde un servidor (GitHub Pages), no con doble clic."
+      "y que abras el sitio desde un servidor (GitHub Pages), no con doble clic." +
+      "<br><small>" + String((e && e.message) || e) + "</small>"
     );
     console.error(e);
     return;
